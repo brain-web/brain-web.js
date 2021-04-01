@@ -62,8 +62,8 @@ export function buildSVG(
     .selectAll('line')
     .data(links)
     .join('line')
-      .attr('class', 'link')
-      .attr('stroke-width', (d) => d.value ** 1 / 4);
+    .attr('class', 'link')
+    .attr('stroke-width', (d) => d.value ** 1 / 4);
 
   function mouseover() {
     d3.select(this).transition()
@@ -105,9 +105,7 @@ export function buildSVG(
 
   node.append('text')
     .attr('class', (d) => `${d.classes || ''} name`)
-    .text((d) => {
-      return people[d.id].displayname
-    })
+    .text((d) => people[d.id].displayname)
     .attr('x', 6)
     .attr('y', 3);
 
@@ -184,7 +182,7 @@ export async function buildNetwork(people, {
       width,
       height,
       Z,
-    }
+    },
   );
   return buildSVG(
     people,
@@ -195,6 +193,13 @@ export async function buildNetwork(people, {
       simulation,
       scale,
       onClick,
-    }
+    },
   );
 }
+
+export default {
+  buildSVG,
+  invokeWorker,
+  buildEmbeddingNetwork,
+  buildNetwork,
+};

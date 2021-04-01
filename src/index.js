@@ -21,5 +21,5 @@ export class BrainWeb {
   }
 }
 
-const instance =  new BrainWeb();
+const instance = new BrainWeb();
 export default instance;

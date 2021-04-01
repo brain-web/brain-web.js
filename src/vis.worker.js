@@ -108,7 +108,7 @@ export function skillsMatrixClustersToGroups(matrix, network) {
   const ngroups = ~~(N ** 1 / 2);
   const groups = tree.group(ngroups);
 
-  groups.children.map((g, i) => {
+  groups.children.forEach((g, i) => {
     g.traverse((gg) => {
       if (gg.isLeaf) {
         network.nodes[gg.index].group = i;
@@ -191,15 +191,14 @@ export function buildEmbeddingNetwork(
     width = 800,
     height = 400,
     Z = 75,
-  }
+  },
 ) {
-
   // TODO review map to list conversion
   people = Object.keys(people).map((uid) => ({
     uid,
     username: people[uid].username,
     skills: people[uid].skills || [],
-  }))
+  }));
 
   const uids = people.map((o) => o.uid);
   const fullNetwork = buildNetwork(people);
@@ -279,6 +278,7 @@ export function onmessage(message) {
   }
 }
 
+// eslint-disable-next-line no-restricted-globals
 self.onmessage = onmessage;
 
 export default class Worker {
