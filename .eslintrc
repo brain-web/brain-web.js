@@ -1,0 +1,15 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "plugins": [
+    ],
+    "rules": {
+        "no-bitwise": [2, { "allow": ["~"] }],
+        "no-param-reassign": 0
+    }
+}

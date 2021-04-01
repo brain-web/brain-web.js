@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Brainweb</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <style>
+    svg .link {
+      stroke: #000;
+      stroke-opacity: 0.2;
+    }
+    svg .name {
+      fill: #000;
+      font-size: 8px;
+    }
+    svg circle:hover + .name{
+      fill: #F00;
+    }
+    svg * {
+      cursor: default;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      pointer-events: none;
+    }
+    svg *::selection {
+      background: none;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    window.onload = function () {
+      BrainWeb.on('data', function (people) {
+        BrainWeb.vis.buildNetwork(people, { width: 800, height: 800, Z: 15, radius: 10 })
+          .then((svg) => {
+            svg.style.width = 800;
+            svg.style.height = 800;
+            document.body.appendChild(svg);
+          })
+          .catch(console.log);
+      });
+      BrainWeb.init();
+    };
+  </script>
+</body>
+</html>
