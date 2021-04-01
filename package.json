@@ -2,7 +2,7 @@
   "name": "brainweb",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/webpack-brainweb.js",
+  "main": "dist/brainweb.js",
   "module": "src/index.js",
   "scripts": {
     "lint": "eslint src/*.js",
