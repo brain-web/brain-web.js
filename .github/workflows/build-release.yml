@@ -15,6 +15,18 @@ jobs:
       - run: npm install
       - uses: actions/setup-node@v1
       - run: npm run build
+      - run: |
+        git log $(jq -r ".version" package.json)..HEAD --oneline | cut -d ' ' -f 2- > /tmp/messages.txt
+
+        BUMP="patch"
+        if grep -q "\bmajor\b" /tmp/messages.txt; then
+          BUMP="major"
+        elif grep -q "\bminor\b" /tmp/messages.txt; then
+          BUMP="minor"
+        fi
+
+        npm version ${BUMP} --no-git-tag-version
+
       - run: gh release create -t $(jq -r ".version" package.json) $(jq -r ".version" package.json) ./dist/*.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
