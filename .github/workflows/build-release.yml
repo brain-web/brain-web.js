@@ -15,3 +15,4 @@ jobs:
     - run: npm install
     - uses: actions/setup-node@v1
     - run: npm run build
+    - run: gh release create -d $(jq -r ".version" package.json) ./dist/*.js
