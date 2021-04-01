@@ -15,6 +15,6 @@ jobs:
     - run: npm install
     - uses: actions/setup-node@v1
     - run: npm run build
-    - run: gh release create -d $(jq -r ".version" package.json) ./dist/*.js
+    - run: gh release create -t $(jq -r ".version" package.json) $(jq -r ".version" package.json) ./dist/*.js
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
