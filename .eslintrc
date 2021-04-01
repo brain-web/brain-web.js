@@ -11,5 +11,15 @@
     "rules": {
         "no-bitwise": [2, { "allow": ["~"] }],
         "no-param-reassign": 0
-    }
+    },
+    "overrides": [
+        {
+            "files": [
+                "**/*.spec.js"
+            ],
+            "env": {
+                "jest": true
+            }
+        }
+    ]
 }
