@@ -8,7 +8,7 @@
     "lint": "eslint src/*.js",
     "test": "jest",
     "lint-fix": "eslint --fix src/*.js",
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack --mode production --config webpack.config.js",
     "serve": "webpack serve --config webpack.config.js"
   },
   "repository": {
