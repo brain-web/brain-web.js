@@ -12,10 +12,11 @@ export function normalise(v) {
 }
 
 export function findPrincipalComponents(m) {
-  let mx = 0; let
-    my = 0;
-  let xx = 0; let yy = 0; let
-    xy = 0;
+  let mx = 0;
+  let my = 0;
+  let xx = 0;
+  let yy = 0;
+  let xy = 0;
   for (let i = 0; i < m.length; i += 1) {
     mx += m[i][0];
     my += m[i][1];
@@ -117,17 +118,15 @@ export function skillsMatrixClustersToGroups(matrix, network) {
   });
 }
 
-export function matrixToNetwork(matrix, embedding, width, height, Z, uids) {
+export function matrixToNetwork(matrix, embedding, uids) {
   const nodes = [];
   const links = [];
   const N = matrix.length;
   for (let i = 0; i < N; i += 1) {
     nodes[i] = {
       id: uids[i],
-      x: width / 2 + Z * embedding[i][0],
-      y: height / 2 + Z * embedding[i][1],
-      vx: 0,
-      vy: 0,
+      x: embedding[i][0],
+      y: embedding[i][1],
       classes: `brainweb-${uids[i]}`,
     };
     for (let j = 0; j < N; j += 1) {
@@ -178,7 +177,7 @@ export function findNullEntriesInMatrix(m) {
 export function removeNullEntriesInMatrix(m, lut) {
   const res = new Array(lut.length);
   for (let i = 0; i < lut.length; i += 1) {
-    res[i] = m[lut[i]];
+    res[i] = new Float32Array(m[lut[i]]);
   }
   return res;
 }
@@ -186,11 +185,9 @@ export function removeNullEntriesInMatrix(m, lut) {
 export function buildEmbeddingNetwork(
   people,
   {
+    clustering = true,
     clusterEmbeddingComponents = 5,
     clusterNearestNeighbours = 8,
-    width = 800,
-    height = 400,
-    Z = 75,
   },
 ) {
   // TODO review map to list conversion
@@ -234,12 +231,10 @@ export function buildEmbeddingNetwork(
   const finalMatrix = JSON.parse(JSON.stringify(matrix));
   const finalEmbedding = [];
   let notNull = 0;
-  const maj = width / height;
-  const R = ((0.9 * width) / Z) / 2;
   for (let i = 0; i < matrix.length; i += 1) {
     if (lut.indexOf(i) < 0) {
       const theta = (2 * Math.PI) * (notNull / (matrix.length - lut.length));
-      finalEmbedding[i] = [R * Math.cos(theta), (R / maj) * Math.sin(theta)];
+      finalEmbedding[i] = [Math.cos(theta), Math.sin(theta)];
       notNull += 1;
     }
     for (let j = 0; j < matrix.length; j += 1) {
@@ -254,7 +249,7 @@ export function buildEmbeddingNetwork(
   }
 
   // build network
-  const prunedNetwork = matrixToNetwork(finalMatrix, finalEmbedding, width, height, Z, uids);
+  const prunedNetwork = matrixToNetwork(finalMatrix, finalEmbedding, uids);
 
   // cluster groups
   skillsMatrixClustersToGroups(matrix, prunedNetwork);

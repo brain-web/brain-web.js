@@ -27,13 +27,15 @@ function drag(simulation) {
 
 export function buildSVG(
   people,
-  data,
+  network,
   {
     width, height, radius, simulation, scale,
     onClick,
+    circles = true, edges = true, names = true
   },
 ) {
-  const { nodes, links } = data;
+
+  const { nodes, links } = network;
 
   if (simulation) {
     simulation = simulation(nodes, links);
@@ -57,7 +59,7 @@ export function buildSVG(
   const svg = d3.create('svg')
     .attr('viewBox', [0, 0, width, height]);
 
-  const link = svg
+  const link = edges && svg
     .append('g')
     .selectAll('line')
     .data(links)
@@ -84,40 +86,46 @@ export function buildSVG(
     .attr('class', 'node')
     .call(drag(simulation));
 
-  if (!scale) {
-    scale = d3.scaleOrdinal(d3.schemePaired);
+  if (circles) {
+    if (!scale) {
+      scale = d3.scaleOrdinal(d3.schemePaired);
+    }
+
+    const circle = node.append('circle')
+      .attr('class', (d) => d.classes || '')
+      .attr('r', radius)
+      .attr('fill', (d) => scale(d.group))
+      .on('mouseover', mouseover)
+      .on('mouseout', mouseout);
+
+    if (onClick) {
+      circle
+        .on('click', (d) => {
+          const { id } = d;
+          onClick(network.nodes.find((n) => n.id === id));
+        });
+    }
   }
 
-  const circle = node.append('circle')
-    .attr('class', (d) => d.classes || '')
-    .attr('r', radius)
-    .attr('fill', (d) => scale(d.group))
-    .on('mouseover', mouseover)
-    .on('mouseout', mouseout);
-
-  if (onClick) {
-    circle
-      .on('click', (d) => {
-        const { id } = d;
-        onClick(data.nodes.find((n) => n.id === id));
-      });
+  if (names) {
+    node.append('text')
+      .attr('class', (d) => `${d.classes || ''} name`)
+      .text((d) => people[d.id].displayname)
+      .attr('x', 6)
+      .attr('y', 3);
   }
 
-  node.append('text')
-    .attr('class', (d) => `${d.classes || ''} name`)
-    .text((d) => people[d.id].displayname)
-    .attr('x', 6)
-    .attr('y', 3);
+  const [halfW, halfH] = [width / 2, height / 2];
 
   simulation.on('tick', () => {
-    link
-      .attr('x1', (d) => d.source.x)
-      .attr('y1', (d) => d.source.y)
-      .attr('x2', (d) => d.target.x)
-      .attr('y2', (d) => d.target.y);
+    edges && link
+      .attr('x1', (d) => d.source.x * 4 + halfW)
+      .attr('y1', (d) => d.source.y * 4 + halfH)
+      .attr('x2', (d) => d.target.x * 4 + halfW)
+      .attr('y2', (d) => d.target.y * 4 + halfH);
 
-    node
-      .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+    (circles || names) && node
+      .attr('transform', (d) => `translate(${d.x * 4 + halfW}, ${d.y * 4 + halfH})`);
   });
 
   return svg.node();
@@ -172,27 +180,22 @@ export async function buildEmbeddingNetwork(people, {
 
 export async function buildNetwork(people, {
   width, height, radius, Z, simulation, scale,
-  onClick,
+  onClick, circles, edges, names,
   clusterEmbeddingComponents,
 }) {
   const prunedNetwork = await buildEmbeddingNetwork(
     people,
     {
       clusterEmbeddingComponents,
-      width,
-      height,
-      Z,
     },
   );
   return buildSVG(
     people,
-    prunedNetwork, {
-      width,
-      height,
-      radius,
-      simulation,
-      scale,
-      onClick,
+    prunedNetwork,
+    {
+      width, height, radius,
+      simulation, scale, onClick,
+      circles, edges, names,
     },
   );
 }
