@@ -1,6 +1,8 @@
 import * as d3 from 'd3';
 import VisWorker from './vis.worker';
 
+export { d3 };
+
 function drag(simulation) {
   function dragstarted(e, d) {
     e.sourceEvent.preventDefault();
