@@ -1,5 +1,5 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: 'development',
@@ -19,13 +19,19 @@ module.exports = {
     ],
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: './example/index.html',
+    new CopyPlugin({
+      patterns: [
+        {
+          from: './examples/*.html',
+          to: '.',
+        },
+      ]
     }),
   ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
+    writeToDisk: true,
     disableHostCheck: true,
     host: '0.0.0.0',
     port: 5500,
