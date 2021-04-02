@@ -6,38 +6,47 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <style>
+    html, body { width: 0; height: 0; width: 100vw; height: 100vh; padding: 0; margin: 0; overflow: hidden; }
+    svg { width: 100vw; height: 100vh; }
     svg .link {
       stroke: #000;
       stroke-opacity: 0.2;
     }
-    svg .name {
-      fill: #000;
-      font-size: 8px;
-    }
-    svg circle:hover + .name{
-      fill: #F00;
-    }
-    svg text {
-      cursor: default;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      pointer-events: none;
-    }
-    svg text::selection {
-      background: none;
-    }
   </style>
 </head>
 <body>
+  <script src="https://unpkg.com/d3-force-boundary@0.0.1/dist/d3-force-boundary.min.js"></script>
   <script>
     window.onload = function () {
+
       BrainWeb.on('data', function (people) {
-        BrainWeb.vis.buildNetwork(people, { width: 800, height: 800, Z: 15, radius: 10 })
+
+        people = Object.keys(people).reduce(function (acc, p) {
+          if (people[p].skills && people[p].skills.length > 0) acc[p] = people[p];
+          return acc;
+        }, {});
+
+        BrainWeb.vis.buildNetwork(people, {
+          width: document.body.clientWidth,
+          height: document.body.clientHeight,
+          Z: 15, circles: false, names: false,
+
+          simulation: (nodes, links) => {
+            const euclidean = ({
+              source: { x: x1, y: y1 },
+              target: { x: x2, y: y2 },
+            }) => ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 1 / 2;
+
+            return BrainWeb.vis.d3.forceSimulation(nodes)
+              .alpha(0.2)
+              .alphaDecay(0.01)
+              .force('link', BrainWeb.vis.d3.forceLink(links).id((d) => d.id).distance(euclidean))
+              .force('charge', BrainWeb.vis.d3.forceManyBody().strength(-0.3))
+              .force('collision', BrainWeb.vis.d3.forceCollide(3))
+              .force('boundaries', forceBoundary(-30, -30, 30, 30).hardBoundary(true).strength(0.001));
+          }
+        })
           .then((svg) => {
-            svg.style.width = 800;
-            svg.style.height = 800;
             document.body.appendChild(svg);
           })
           .catch(console.log);
