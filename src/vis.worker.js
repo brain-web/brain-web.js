@@ -49,7 +49,7 @@ export function findPrincipalComponents(m) {
   return { mean: [mx, my], evec1: e1, evec2: e2 };
 }
 
-export function pruneSkillsMatrixBasedOnEmbeddingNearestNeighbours(matrix, embedding, K) {
+export function kNNSkillsMatrixPruning(matrix, embedding, K) {
   const N = matrix.length;
   const D = embedding[0].length;
 
@@ -203,11 +203,11 @@ export function buildEmbeddingNetwork(
 
   // remove null entries from matrix
   const lut = findNullEntriesInMatrix(matrix);
-  const matrix2 = removeNullEntriesInMatrix(matrix, lut);
+  const notNullMatrix = removeNullEntriesInMatrix(matrix, lut);
 
   // 2d embedding for display
   const umap2 = new UMAP({ nComponents: 2 });
-  const embedding = umap2.fit(matrix2);
+  const embedding = umap2.fit(notNullMatrix);
 
   // align embedding axes
   const axes = findPrincipalComponents(embedding);
@@ -223,9 +223,9 @@ export function buildEmbeddingNetwork(
 
   // 5d embedding for clustering
   const umap5 = new UMAP({ nComponents: clusterEmbeddingComponents });
-  const embedding5 = umap5.fit(matrix2);
+  const embedding5 = umap5.fit(notNullMatrix);
 
-  pruneSkillsMatrixBasedOnEmbeddingNearestNeighbours(matrix2, embedding5, clusterNearestNeighbours);
+  kNNSkillsMatrixPruning(notNullMatrix, embedding5, clusterNearestNeighbours);
 
   // add null entries back
   const finalMatrix = JSON.parse(JSON.stringify(matrix));
@@ -249,12 +249,12 @@ export function buildEmbeddingNetwork(
   }
 
   // build network
-  const prunedNetwork = matrixToNetwork(finalMatrix, finalEmbedding, uids);
+  const network = matrixToNetwork(finalMatrix, finalEmbedding, uids);
 
   // cluster groups
-  skillsMatrixClustersToGroups(matrix, prunedNetwork);
+  skillsMatrixClustersToGroups(matrix, network);
 
-  return prunedNetwork;
+  return network;
 }
 
 export function onmessage(message) {
