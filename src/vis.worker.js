@@ -101,15 +101,14 @@ export function networkToSkillsMatrix(network, people) {
   return matrix;
 }
 
-export function skillsMatrixClustersToGroups(matrix, network) {
+export function skillsClustersToGroups(matrix, network, groups) {
   const tree = agnes(matrix, {
     method: 'ward',
   });
   const N = matrix.length;
-  const ngroups = ~~(N ** 1 / 2);
-  const groups = tree.group(ngroups);
+  const clusters = tree.group(groups);
 
-  groups.children.forEach((g, i) => {
+  clusters.children.forEach((g, i) => {
     g.traverse((gg) => {
       if (gg.isLeaf) {
         network.nodes[gg.index].group = i;
@@ -186,6 +185,7 @@ export function buildEmbeddingNetwork(
   people,
   {
     clustering = true,
+    clusters = null,
     clusterEmbeddingComponents = 5,
     clusterNearestNeighbours = 8,
   },
@@ -252,7 +252,11 @@ export function buildEmbeddingNetwork(
   const network = matrixToNetwork(finalMatrix, finalEmbedding, uids);
 
   // cluster groups
-  skillsMatrixClustersToGroups(matrix, network);
+  if (clusters === null) {
+    const N = finalMatrix.length;
+    clusters = ~~(N ** 1 / 2);
+  }
+  skillsClustersToGroups(matrix, network, clusters);
 
   return network;
 }
