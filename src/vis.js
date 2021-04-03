@@ -3,7 +3,7 @@ import VisWorker from './vis.worker';
 
 export { d3 };
 
-function drag(simulation, scale, translate) {
+function drag(simulation) {
   function dragstarted(e, d) {
     e.sourceEvent.preventDefault();
     if (!e.active) simulation.alphaTarget(0.3).restart();
@@ -51,7 +51,7 @@ export function buildSVG(
       .velocityDecay(0.1)
       .force('link', d3.forceLink(links).id((d) => d.id).distance(euclidean))
       .force('collision', d3.forceCollide(5))
-      .force('charge', BrainWeb.vis.d3.forceManyBody().strength(-0.3))
+      .force('charge', d3.forceManyBody().strength(-0.3))
       .force('center', d3.forceCenter().strength(0.1));
   }
 
@@ -71,7 +71,7 @@ export function buildSVG(
     .data(nodes)
     .join('g')
     .attr('class', 'node')
-    .call(drag(simulation, zoom, { x: halfW, y: halfH }));
+    .call(drag(simulation));
 
   if (circles) {
     if (!scale) {
@@ -101,14 +101,17 @@ export function buildSVG(
   }
 
   simulation.on('tick', () => {
-    edges && link
-      .attr('x1', (d) => d.source.x * zoom + halfW)
-      .attr('y1', (d) => d.source.y * zoom + halfH)
-      .attr('x2', (d) => d.target.x * zoom + halfW)
-      .attr('y2', (d) => d.target.y * zoom + halfH);
-
-    (circles || names) && node
-      .attr('transform', (d) => `translate(${d.x * zoom + halfW}, ${d.y * zoom + halfH})`);
+    if (edges) {
+      link
+        .attr('x1', (d) => d.source.x * zoom + halfW)
+        .attr('y1', (d) => d.source.y * zoom + halfH)
+        .attr('x2', (d) => d.target.x * zoom + halfW)
+        .attr('y2', (d) => d.target.y * zoom + halfH);
+    }
+    if (circles || names) {
+      node
+        .attr('transform', (d) => `translate(${d.x * zoom + halfW}, ${d.y * zoom + halfH})`);
+    }
   });
 
   return svg.node();
@@ -160,19 +163,15 @@ export async function buildNetwork(people, {
   clusterEmbeddingComponents,
   clusterNearestNeighbours,
 }) {
-  let prunedNetwork = JSON.parse(localStorage.getItem('network'));
-  if (!prunedNetwork) {
-    prunedNetwork = await buildEmbeddingNetwork(
-      people,
-      {
-        clustering,
-        clusters,
-        clusterEmbeddingComponents,
-        clusterNearestNeighbours,
-      },
-    );
-    localStorage.setItem('network', JSON.stringify(prunedNetwork));
-  }
+  const prunedNetwork = await buildEmbeddingNetwork(
+    people,
+    {
+      clustering,
+      clusters,
+      clusterEmbeddingComponents,
+      clusterNearestNeighbours,
+    },
+  );
 
   return buildSVG(
     people,

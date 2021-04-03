@@ -81,12 +81,10 @@
           height: document.body.clientHeight,
           zoom: 2,
           names: false,
-          clusters: 1,
         })
           .then((svg) => {
             document.body.appendChild(svg);
             classes.forEach((cls) => {
-              console.log(document.getElementsByClassName(cls));
               Array.prototype.forEach.call(
                 document.getElementsByClassName(cls),
                 (el) => el.classList.add('shining')

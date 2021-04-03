@@ -79,6 +79,22 @@ export function kNNSkillsMatrixPruning(matrix, embedding, K) {
   }
 }
 
+export function thresholdSkillsMatrixPruning(matrix, threshold) {
+  const N = matrix.length;
+  const max = Math.max(...matrix.map((m) => {
+    return Math.max(...m)
+  }));
+  const boundary = max * threshold;
+  for (let i = 0; i < N; i += 1) {
+    for (let j = i; j < N; j += 1) {
+      if (matrix[i][j] < boundary) {
+        matrix[i][j] = 0;
+        matrix[j][i] = 0;
+      }
+    }
+  }
+}
+
 export function networkToSkillsMatrix(network, people) {
   const N = network.nodes.length;
   const uids = network.nodes.map((o) => o.id);
@@ -148,13 +164,37 @@ export function buildNetwork(people) {
       const trg = people[j];
       const srcSkills = src.skills;
       const trgSkills = trg.skills;
-      const common = srcSkills.reduce((acc, cur) => (acc + trgSkills.includes(cur) ? 1 : 0), 0);
+      const common = srcSkills.reduce((acc, cur) => (acc + (trgSkills.includes(cur) ? 1 : 0)), 0);
       if (common > 0) {
         links.push({ source: src.uid, target: trg.uid, value: common });
       }
     }
   }
   return { nodes, links };
+}
+
+export function buildSkillsMatrix(people) {
+  const uids = Object.keys(people);
+  const N = uids.length;
+
+  const matrix = [];
+  for (let i = 0; i < N; i += 1) {
+    matrix[i] = new Float32Array(N);
+    matrix[i][i] = people[uids[i]].skills.length;
+  }
+
+  for (let i = 0; i < N - 1; i += 1) {
+    for (let j = i + 1; j < N; j += 1) {
+      const src = people[uids[i]].skills;
+      const trg = people[uids[j]].skills;
+      const common = src.reduce((acc, cur) => (acc + (trg.includes(cur) ? 1 : 0)), 0);
+      if (common > 0) {
+        matrix[i][j] = common;
+        matrix[j][i] = common;
+      }
+    }
+  }
+  return matrix;
 }
 
 export function findNullEntriesInMatrix(m) {
@@ -195,8 +235,7 @@ export function buildEmbeddingNetwork(
   }));
 
   const uids = people.map((o) => o.uid);
-  const fullNetwork = buildNetwork(people);
-  const matrix = networkToSkillsMatrix(fullNetwork, people);
+  const matrix = buildSkillsMatrix(people);
 
   // remove null entries from matrix
   const lut = findNullEntriesInMatrix(matrix);
@@ -218,11 +257,14 @@ export function buildEmbeddingNetwork(
     embedding[i][1] = x * evec2[0] + y * evec2[1];
   }
 
-  // 5d embedding for clustering
-  const umap5 = new UMAP({ nComponents: clusterEmbeddingComponents });
-  const embedding5 = umap5.fit(notNullMatrix);
-
-  kNNSkillsMatrixPruning(notNullMatrix, embedding5, clusterNearestNeighbours);
+  if (clustering) {
+    // 5d embedding for clustering
+    const umap5 = new UMAP({ nComponents: clusterEmbeddingComponents });
+    const embedding5 = umap5.fit(notNullMatrix);
+    kNNSkillsMatrixPruning(notNullMatrix, embedding5, clusterNearestNeighbours);
+  } else {
+    thresholdSkillsMatrixPruning(notNullMatrix, 0.1);
+  }
 
   // add null entries back
   const finalMatrix = JSON.parse(JSON.stringify(matrix));
