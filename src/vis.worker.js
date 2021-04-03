@@ -102,10 +102,7 @@ export function networkToSkillsMatrix(network, people) {
 }
 
 export function skillsClustersToGroups(matrix, network, groups) {
-  const tree = agnes(matrix, {
-    method: 'ward',
-  });
-  const N = matrix.length;
+  const tree = agnes(matrix, { method: 'ward' });
   const clusters = tree.group(groups);
 
   clusters.children.forEach((g, i) => {
@@ -244,7 +241,7 @@ export function buildEmbeddingNetwork(
   for (let i = 0; i < lut.length; i += 1) {
     finalEmbedding[lut[i]] = embedding[i];
     for (let j = 0; j < lut.length; j += 1) {
-      finalMatrix[lut[i]][lut[j]] = matrix2[i][j];
+      finalMatrix[lut[i]][lut[j]] = notNullMatrix[i][j];
     }
   }
 
