@@ -61,8 +61,7 @@ export function init(dispatcher) {
     signIn: () => {
       firebase.auth().signInWithPopup(provider)
         .then((result) => {
-          const credential = result.credential;
-          const user = result.user;
+          const { user, credential } = result;
           dispatcher.dispatch('signIn', { user, credential });
         })
         .catch((error) => {
