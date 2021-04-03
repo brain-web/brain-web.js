@@ -49,32 +49,14 @@ export function findPrincipalComponents(m) {
   return { mean: [mx, my], evec1: e1, evec2: e2 };
 }
 
-export function kNNSkillsMatrixPruning(matrix, embedding, K) {
+export function kNNSkillsMatrixPruning(matrix, knn) {
   const N = matrix.length;
-  const D = embedding[0].length;
-
-  const dist = new Array(N);
+  const nns = knn.knnIndices;
   for (let i = 0; i < N; i += 1) {
-    dist[i] = new Float32Array(N);
-  }
-
-  for (let i = 0; i < N; i += 1) {
-    for (let j = i; j < N; j += 1) {
-      let d = 0;
-      for (let k = 0; k < D; k += 1) {
-        d += (embedding[i][k] - embedding[j][k]) ** 2;
+    for (let j = 0; j < N; j += 1) {
+      if (!nns[i].includes(j)) {
+        matrix[i][j] = 0;
       }
-      dist[i][j] = d;
-      dist[j][i] = d;
-    }
-  }
-  const map = (a, fn) => Array.prototype.map.call(a, fn);
-  for (let i = 0; i < N; i += 1) {
-    const sorted = map(dist[i], (val, ind) => [val, ind])
-      .sort((a, b) => b[0] - a[0]);
-
-    for (let j = 0; j < N - K; j += 1) {
-      matrix[i][sorted[j][1]] = 0;
     }
   }
 }
@@ -221,8 +203,9 @@ export function buildEmbeddingNetwork(
   {
     clustering = true,
     clusters = null,
+    clusterEmbedding = true,
     clusterEmbeddingComponents = 5,
-    clusterNearestNeighbours = 8,
+    clusterNearestNeighbours = 12,
   },
 ) {
   // TODO review map to list conversion
@@ -243,23 +226,20 @@ export function buildEmbeddingNetwork(
   const umap2 = new UMAP({ nComponents: 2 });
   const embedding = umap2.fit(notNullMatrix);
 
-  // align embedding axes
-  const axes = findPrincipalComponents(embedding);
-  const { mean, evec1, evec2 } = axes;
-
-  for (let i = 0; i < embedding.length; i += 1) {
-    let [x, y] = embedding[i];
-    x -= mean[0];
-    y -= mean[1];
-    embedding[i][0] = x * evec1[0] + y * evec1[1];
-    embedding[i][1] = x * evec2[0] + y * evec2[1];
-  }
-
   if (clustering) {
     // 5d embedding for clustering
-    const umap5 = new UMAP({ nComponents: clusterEmbeddingComponents });
-    const embedding5 = umap5.fit(notNullMatrix);
-    kNNSkillsMatrixPruning(notNullMatrix, embedding5, clusterNearestNeighbours);
+    const umap5 = new UMAP({
+      nComponents: clusterEmbeddingComponents,
+      nNeighbors: clusterNearestNeighbours,
+    });
+    let nns;
+    if (clusterEmbedding) {
+      const embedding5 = umap5.fit(notNullMatrix);
+      nns = umap5.nearestNeighbors(embedding5);
+    } else {
+      nns = umap5.nearestNeighbors(notNullMatrix);
+    }
+    kNNSkillsMatrixPruning(notNullMatrix, nns);
   } else {
     thresholdSkillsMatrixPruning(notNullMatrix, 0.1);
   }
