@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import forceBoundary from 'd3-force-boundary';
 import VisWorker from './vis.worker';
 
 export { d3 };
@@ -50,9 +51,10 @@ export function buildSVG(
     simulation = d3.forceSimulation(nodes)
       .velocityDecay(0.1)
       .force('link', d3.forceLink(links).id((d) => d.id).distance(euclidean))
-      .force('collision', d3.forceCollide(5))
+      .force('collision', d3.forceCollide(5).iterations(5))
       .force('charge', d3.forceManyBody().strength(-0.3))
-      .force('center', d3.forceCenter().strength(0.1));
+      .force('y', d3.forceY().strength(0.01))
+      .force('boundaries', forceBoundary(-halfW, -halfH, halfW, halfH).hardBoundary(true).strength(0.001));
   }
 
   const svg = d3.create('svg')
