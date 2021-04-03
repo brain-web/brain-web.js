@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Brainweb</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <style>
+    html, body {
+      width: 0; height: 0; width: 100vw; height: 100vh; padding: 0; margin: 0; overflow: hidden;
+      background: #393f5f;
+      display: grid;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    #button { 
+      display: grid;
+      align-items: center;
+      justify-content: center;
+    }
+    button {
+      background: #DDD;
+      border: none;
+      width: auto;
+      font-size: 200%;
+      padding: 20px;
+    }
+    #message {
+      margin: 0 10vw;
+      color: #FFF;
+    }
+  </style>
+</head>
+<body>
+  <div id="button">
+    <button id="signin">Sign-in</button>
+  </div>
+  <div id="message"></div>
+
+  <script src="../brainweb.js"></script>
+  <script>
+    window.onload = function () {
+      BrainWeb.init();
+      BrainWeb.on('signIn', ({ user, credential }) => {
+
+      });
+      BrainWeb.on('signInError', ({ error }) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        document.getElementById('message').innerHTML = '<strong>' + errorCode + '</strong>: ' + errorMessage;
+      });
+
+      document.getElementById('signin').addEventListener('click', () => {
+        BrainWeb.firebase.signIn();
+      })
+    };
+  </script>
+</body>
+</html>

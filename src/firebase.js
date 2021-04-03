@@ -17,6 +17,8 @@ async function fetchFromGithub(uid) {
   return json;
 }
 
+const provider = new firebase.auth.GithubAuthProvider();
+
 export function init(dispatcher) {
   // const uiAuth = new firebaseui.auth.AuthUI(firebase.auth());
 
@@ -56,16 +58,16 @@ export function init(dispatcher) {
   });
 
   return {
-    signIn: (signInSuccessUrl) => {
-      // uiAuth.start(containerId, {
-      //   signInSuccessUrl,
-      //   signInOptions: [
-      //     firebase.auth.GithubAuthProvider.PROVIDER_ID,
-      //   ],
-      //   signInFlow: 'popup',
-      //   tosUrl: 'tos.html',
-      // });
-      dispatcher.dispatch('signIn', { signInSuccessUrl });
+    signIn: () => {
+      firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+          const credential = result.credential;
+          const user = result.user;
+          dispatcher.dispatch('signIn', { user, credential });
+        })
+        .catch((error) => {
+          dispatcher.dispatch('signInError', { error });
+        });
     },
     signOut: () => {
       firebase.auth().signOut();
