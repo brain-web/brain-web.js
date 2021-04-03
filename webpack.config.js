@@ -6,8 +6,8 @@ module.exports = {
   entry: './src/entrypoint.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'brainweb.js',
-    library: 'brainweb',
+    filename: 'brain-web.js',
+    library: 'brain-web',
     clean: true,
   },
   module: {

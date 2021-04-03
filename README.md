@@ -1,1 +1,1 @@
-# BrainWeb-js
+# brain-web JS

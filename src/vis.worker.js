@@ -137,7 +137,7 @@ export function matrixToNetwork(matrix, embedding, uids) {
       id: uids[i],
       x: embedding[i][0],
       y: embedding[i][1],
-      classes: `brainweb-${uids[i]}`,
+      classes: `bw-${uids[i]}`,
     };
     for (let j = 0; j < N; j += 1) {
       if (i !== j && matrix[i][j] > 0) {

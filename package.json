@@ -1,8 +1,8 @@
 {
-  "name": "brainweb",
+  "name": "brain-web",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/brainweb.js",
+  "main": "dist/brain-web.js",
   "module": "src/index.js",
   "scripts": {
     "lint": "eslint src/*.js",
