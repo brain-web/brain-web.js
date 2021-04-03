@@ -81,9 +81,7 @@ export function kNNSkillsMatrixPruning(matrix, embedding, K) {
 
 export function thresholdSkillsMatrixPruning(matrix, threshold) {
   const N = matrix.length;
-  const max = Math.max(...matrix.map((m) => {
-    return Math.max(...m)
-  }));
+  const max = Math.max(...matrix.map((m) => Math.max(...m)));
   const boundary = max * threshold;
   for (let i = 0; i < N; i += 1) {
     for (let j = i; j < N; j += 1) {
