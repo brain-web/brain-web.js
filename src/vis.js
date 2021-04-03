@@ -3,7 +3,7 @@ import VisWorker from './vis.worker';
 
 export { d3 };
 
-function drag(simulation) {
+function drag(simulation, scale, translate) {
   function dragstarted(e, d) {
     e.sourceEvent.preventDefault();
     if (!e.active) simulation.alphaTarget(0.3).restart();
@@ -31,13 +31,13 @@ export function buildSVG(
   people,
   network,
   {
-    width, height, radius, simulation, scale,
-    onClick,
-    circles = true, edges = true, names = true
+    width, height, radius, zoom = 1,
+    simulation, scale, onClick,
+    circles = true, edges = true, names = true,
   },
 ) {
-
   const { nodes, links } = network;
+  const [halfW, halfH] = [width / 2, height / 2];
 
   if (simulation) {
     simulation = simulation(nodes, links);
@@ -49,13 +49,10 @@ export function buildSVG(
 
     simulation = d3.forceSimulation(nodes)
       .velocityDecay(0.1)
-      .force(
-        'link',
-        d3.forceLink(links)
-          .id((d) => d.id)
-          .distance(euclidean),
-      )
-      .force('collision', d3.forceCollide(5));
+      .force('link', d3.forceLink(links).id((d) => d.id).distance(euclidean))
+      .force('collision', d3.forceCollide(5))
+      .force('charge', BrainWeb.vis.d3.forceManyBody().strength(-0.3))
+      .force('center', d3.forceCenter().strength(0.1));
   }
 
   const svg = d3.create('svg')
@@ -69,24 +66,12 @@ export function buildSVG(
     .attr('class', 'link')
     .attr('stroke-width', (d) => d.value ** 1 / 4);
 
-  function mouseover() {
-    d3.select(this).transition()
-      .duration(50)
-      .attr('r', radius * 2);
-  }
-
-  function mouseout() {
-    d3.select(this).transition()
-      .duration(50)
-      .attr('r', radius);
-  }
-
   const node = svg.append('g')
     .selectAll('.node')
     .data(nodes)
     .join('g')
     .attr('class', 'node')
-    .call(drag(simulation));
+    .call(drag(simulation, zoom, { x: halfW, y: halfH }));
 
   if (circles) {
     if (!scale) {
@@ -96,9 +81,7 @@ export function buildSVG(
     const circle = node.append('circle')
       .attr('class', (d) => d.classes || '')
       .attr('r', radius)
-      .attr('fill', (d) => scale(d.group))
-      .on('mouseover', mouseover)
-      .on('mouseout', mouseout);
+      .attr('fill', (d) => scale(d.group));
 
     if (onClick) {
       circle
@@ -117,17 +100,15 @@ export function buildSVG(
       .attr('y', 3);
   }
 
-  const [halfW, halfH] = [width / 2, height / 2];
-
   simulation.on('tick', () => {
     edges && link
-      .attr('x1', (d) => d.source.x * 4 + halfW)
-      .attr('y1', (d) => d.source.y * 4 + halfH)
-      .attr('x2', (d) => d.target.x * 4 + halfW)
-      .attr('y2', (d) => d.target.y * 4 + halfH);
+      .attr('x1', (d) => d.source.x * zoom + halfW)
+      .attr('y1', (d) => d.source.y * zoom + halfH)
+      .attr('x2', (d) => d.target.x * zoom + halfW)
+      .attr('y2', (d) => d.target.y * zoom + halfH);
 
     (circles || names) && node
-      .attr('transform', (d) => `translate(${d.x * 4 + halfW}, ${d.y * 4 + halfH})`);
+      .attr('transform', (d) => `translate(${d.x * zoom + halfW}, ${d.y * zoom + halfH})`);
   });
 
   return svg.node();
@@ -160,44 +141,53 @@ export function invokeWorker(method, param) {
   });
 }
 
-export async function buildEmbeddingNetwork(people, {
-  clusterEmbeddingComponents,
-  width,
-  height,
-  Z,
-} = {}) {
+export async function buildEmbeddingNetwork(people, params = {}) {
   return invokeWorker(
     'buildEmbeddingNetwork',
     {
       people,
-      params: {
-        clusterEmbeddingComponents,
-        width,
-        height,
-        Z,
-      },
+      params,
     },
   );
 }
 
 export async function buildNetwork(people, {
-  width, height, radius, Z, simulation, scale,
-  onClick, circles, edges, names,
+  width, height, radius, zoom,
+  simulation, scale, onClick,
+  circles, edges, names,
+
+  clustering, clusters,
   clusterEmbeddingComponents,
+  clusterNearestNeighbours,
 }) {
-  const prunedNetwork = await buildEmbeddingNetwork(
-    people,
-    {
-      clusterEmbeddingComponents,
-    },
-  );
+  let prunedNetwork = JSON.parse(localStorage.getItem('network'));
+  if (!prunedNetwork) {
+    prunedNetwork = await buildEmbeddingNetwork(
+      people,
+      {
+        clustering,
+        clusters,
+        clusterEmbeddingComponents,
+        clusterNearestNeighbours,
+      },
+    );
+    localStorage.setItem('network', JSON.stringify(prunedNetwork));
+  }
+
   return buildSVG(
     people,
     prunedNetwork,
     {
-      width, height, radius,
-      simulation, scale, onClick,
-      circles, edges, names,
+      width,
+      height,
+      radius,
+      zoom,
+      simulation,
+      scale,
+      onClick,
+      circles,
+      edges,
+      names,
     },
   );
 }
