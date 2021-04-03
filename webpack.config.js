@@ -7,7 +7,10 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'brain-web.js',
-    library: 'brain-web',
+    library: {
+      name: 'brain-web',
+      type: 'umd',
+    },
     clean: true,
   },
   module: {
