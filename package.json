@@ -9,7 +9,8 @@
     "test": "jest",
     "lint-fix": "eslint --fix src/*.js",
     "build": "webpack --mode production --config webpack.config.js",
-    "serve": "webpack serve --config webpack.config.js"
+    "serve": "webpack serve --config webpack.config.js",
+    "clean": "rm -rf node_modules dist"
   },
   "files": [
     "dist/brain-web.js",
