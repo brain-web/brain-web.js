@@ -15,7 +15,7 @@ jobs:
       - run: npm install
       - uses: actions/setup-node@v1
       - run: npm run build
-      - run: git push origin :refs/tags/nightly && git tag -d nightly
+      - run: (git push origin :refs/tags/nightly && git tag -d nightly) || true
       - run: gh release delete nightly -y
       - run: gh release create --prerelease --target develop -t nightly nightly ./dist/*.js
         env:
