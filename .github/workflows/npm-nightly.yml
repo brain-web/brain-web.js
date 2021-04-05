@@ -1,10 +1,10 @@
-name: Node.js package
+name: npm nightly
 on:
   push:
     branches:
       - develop
 jobs:
-  package:
+  npm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -14,12 +14,12 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm install
       - run: npm run build
-      - run: npm publish --access public --tag nightly
+      - run: npm publish --tag nightly
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # - uses: actions/setup-node@v1
       #   with:
       #     registry-url: "https://npm.pkg.github.com"
-      # - run: npm publish --access public --tag nightly
+      # - run: npm publish --tag nightly
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
