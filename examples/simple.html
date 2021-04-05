@@ -51,6 +51,8 @@
           zoom: 2,
           names: false,
           clusters: 5,
+          clusterEmbeddingComponents: 10,
+          clusterPreventIsolated: false,
         })
           .then((svg) => {
             document.body.appendChild(svg);

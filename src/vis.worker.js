@@ -49,13 +49,28 @@ export function findPrincipalComponents(m) {
   return { mean: [mx, my], evec1: e1, evec2: e2 };
 }
 
-export function kNNSkillsMatrixPruning(matrix, knn) {
+function degree(node) {
+  return Array.prototype.reduce.call(
+    node,
+    (acc, cur) => acc + (cur > 0 ? 1 : 0), 0,
+  );
+}
+
+export function kNNSkillsMatrixPruning(matrix, knn, preventIsolated) {
   const N = matrix.length;
   const nns = knn.knnIndices;
   for (let i = 0; i < N; i += 1) {
-    for (let j = 0; j < N; j += 1) {
+    matrix[i][i] = 0;
+    if (preventIsolated) {
+      const d = degree(matrix[i]);
+      if (d < knn) {
+        continue;
+      }
+    }
+    for (let j = i + 1; j < N; j += 1) {
       if (!nns[i].includes(j)) {
         matrix[i][j] = 0;
+        matrix[j][i] = 0;
       }
     }
   }
@@ -205,7 +220,8 @@ export function buildEmbeddingNetwork(
     clusters = null,
     clusterEmbedding = true,
     clusterEmbeddingComponents = 5,
-    clusterNearestNeighbours = 12,
+    clusterNearestNeighbours = 8,
+    clusterPreventIsolated = true,
   },
 ) {
   // TODO review map to list conversion
@@ -239,30 +255,37 @@ export function buildEmbeddingNetwork(
     } else {
       nns = umap5.nearestNeighbors(notNullMatrix);
     }
-    kNNSkillsMatrixPruning(notNullMatrix, nns);
+    kNNSkillsMatrixPruning(notNullMatrix, nns, clusterPreventIsolated);
   } else {
     thresholdSkillsMatrixPruning(notNullMatrix, 0.1);
   }
 
   // add null entries back
-  const finalMatrix = JSON.parse(JSON.stringify(matrix));
-  const finalEmbedding = [];
-  let notNull = 0;
-  for (let i = 0; i < matrix.length; i += 1) {
-    if (lut.indexOf(i) < 0) {
-      const theta = (2 * Math.PI) * (notNull / (matrix.length - lut.length));
-      finalEmbedding[i] = [Math.cos(theta), Math.sin(theta)];
-      notNull += 1;
+  let finalMatrix;
+  let finalEmbedding;
+  if (!clusterPreventIsolated) {
+    finalMatrix = JSON.parse(JSON.stringify(matrix));
+    finalEmbedding = [];
+    let notNull = 0;
+    for (let i = 0; i < matrix.length; i += 1) {
+      if (lut.indexOf(i) === -1) {
+        const theta = (2 * Math.PI) * (notNull / (matrix.length - lut.length));
+        finalEmbedding[i] = [Math.cos(theta), Math.sin(theta)];
+        notNull += 1;
+      }
+      for (let j = 0; j < matrix.length; j += 1) {
+        finalMatrix[i][j] = 0;
+      }
     }
-    for (let j = 0; j < matrix.length; j += 1) {
-      finalMatrix[i][j] = 0;
+    for (let i = 0; i < lut.length; i += 1) {
+      finalEmbedding[lut[i]] = embedding[i];
+      for (let j = 0; j < lut.length; j += 1) {
+        finalMatrix[lut[i]][lut[j]] = notNullMatrix[i][j];
+      }
     }
-  }
-  for (let i = 0; i < lut.length; i += 1) {
-    finalEmbedding[lut[i]] = embedding[i];
-    for (let j = 0; j < lut.length; j += 1) {
-      finalMatrix[lut[i]][lut[j]] = notNullMatrix[i][j];
-    }
+  } else {
+    finalEmbedding = embedding;
+    finalMatrix = notNullMatrix;
   }
 
   // build network
@@ -273,7 +296,7 @@ export function buildEmbeddingNetwork(
     const N = finalMatrix.length;
     clusters = ~~(N ** 1 / 2);
   }
-  skillsClustersToGroups(matrix, network, clusters);
+  skillsClustersToGroups(finalMatrix, network, clusters);
 
   return network;
 }
