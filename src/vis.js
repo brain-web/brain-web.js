@@ -1,6 +1,11 @@
-import * as d3 from 'd3';
+import * as d3lib from 'd3';
 import forceBoundary from 'd3-force-boundary';
 import VisWorker from './vis.worker';
+
+const d3 = {
+  ...d3lib,
+  forceBoundary,
+};
 
 export { d3 };
 
@@ -28,6 +33,17 @@ function drag(simulation) {
     .on('end', dragended);
 }
 
+export function defaultSimulation(nodes, links, origin) {
+  const { x, y, zoom } = origin;
+  return d3.forceSimulation(nodes)
+    .velocityDecay(0.1 * zoom)
+    .force('link', d3.forceLink(links).id((d) => d.id).distance((l) => l.value))
+    .force('collision', d3.forceCollide(5 * zoom).iterations(5))
+    .force('charge', d3.forceManyBody().strength(-0.3 * zoom))
+    .force('y', d3.forceY().strength(0.01 * zoom))
+    .force('boundaries', d3.forceBoundary(-x, -y, x, y).hardBoundary(true).strength(0.001 * zoom));
+}
+
 export function buildSVG(
   people,
   network,
@@ -40,21 +56,11 @@ export function buildSVG(
   const { nodes, links } = network;
   const [halfW, halfH] = [width / 2, height / 2];
 
+  const origin = { x: halfW, y: halfH, zoom };
   if (simulation) {
-    simulation = simulation(nodes, links);
+    simulation = simulation(nodes, links, origin);
   } else {
-    const euclidean = ({
-      source: { x: x1, y: y1 },
-      target: { x: x2, y: y2 },
-    }) => ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 1 / 2;
-
-    simulation = d3.forceSimulation(nodes)
-      .velocityDecay(0.1)
-      .force('link', d3.forceLink(links).id((d) => d.id).distance(euclidean))
-      .force('collision', d3.forceCollide(5).iterations(5))
-      .force('charge', d3.forceManyBody().strength(-0.3))
-      .force('y', d3.forceY().strength(0.01))
-      .force('boundaries', forceBoundary(-halfW, -halfH, halfW, halfH).hardBoundary(true).strength(0.001));
+    simulation = defaultSimulation(nodes, links, origin);
   }
 
   const svg = d3.create('svg')
@@ -66,6 +72,7 @@ export function buildSVG(
     .data(links)
     .join('line')
     .attr('class', 'link')
+    .attr('value', (d) => d.value * zoom)
     .attr('stroke-width', (d) => d.value ** 1 / 4);
 
   const node = svg.append('g')
@@ -73,6 +80,8 @@ export function buildSVG(
     .data(nodes)
     .join('g')
     .attr('class', 'node')
+    .attr('x', (d) => d.x * zoom)
+    .attr('y', (d) => d.y * zoom)
     .call(drag(simulation));
 
   if (circles) {
@@ -105,14 +114,14 @@ export function buildSVG(
   simulation.on('tick', () => {
     if (edges) {
       link
-        .attr('x1', (d) => d.source.x * zoom + halfW)
-        .attr('y1', (d) => d.source.y * zoom + halfH)
-        .attr('x2', (d) => d.target.x * zoom + halfW)
-        .attr('y2', (d) => d.target.y * zoom + halfH);
+        .attr('x1', (d) => d.source.x + halfW)
+        .attr('y1', (d) => d.source.y + halfH)
+        .attr('x2', (d) => d.target.x + halfW)
+        .attr('y2', (d) => d.target.y + halfH);
     }
     if (circles || names) {
       node
-        .attr('transform', (d) => `translate(${d.x * zoom + halfW}, ${d.y * zoom + halfH})`);
+        .attr('transform', (d) => `translate(${d.x + halfW}, ${d.y + halfH})`);
     }
   });
 
