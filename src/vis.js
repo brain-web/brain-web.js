@@ -89,7 +89,7 @@ export function buildSVG(
       circle
         .on('click', (e, d) => {
           const { id } = d;
-          onClick(e, network.nodes.find((n) => n.id === id));
+          onClick(e, people[id]);
         });
     }
   }
