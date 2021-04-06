@@ -53,6 +53,7 @@
           clusters: 5,
           clusterEmbeddingComponents: 10,
           clusterPreventIsolated: false,
+          onClick: (e, user) => console.log(user)
         })
           .then((svg) => {
             document.body.appendChild(svg);
