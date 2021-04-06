@@ -49,28 +49,31 @@ export function findPrincipalComponents(m) {
   return { mean: [mx, my], evec1: e1, evec2: e2 };
 }
 
-function degree(node) {
+function degree(node, nodei) {
   return Array.prototype.reduce.call(
     node,
-    (acc, cur) => acc + (cur > 0 ? 1 : 0), 0,
+    (acc, cur, curi) => acc + (cur > 0 && curi !== nodei ? 1 : 0), 0,
   );
 }
 
 export function kNNSkillsMatrixPruning(matrix, knn, preventIsolated) {
   const N = matrix.length;
   const nns = knn.knnIndices;
+  const d = matrix.map(degree);
+
   for (let i = 0; i < N; i += 1) {
     matrix[i][i] = 0;
     if (preventIsolated) {
-      const d = degree(matrix[i]);
-      if (d < knn) {
+      if (d[i] < knn) {
         continue; // eslint-disable-line no-continue
       }
     }
     for (let j = i + 1; j < N; j += 1) {
-      if (!nns[i].includes(j)) {
+      if (!nns[i].includes(j) && matrix[i][j] !== 0 && d[i] > 1 && d[j] > 1) {
         matrix[i][j] = 0;
         matrix[j][i] = 0;
+        d[i] -= 1;
+        d[j] -= 1;
       }
     }
   }
@@ -205,12 +208,12 @@ export function findNullEntriesInMatrix(m) {
   return lut;
 }
 
-export function removeNullEntriesInMatrix(m, lut) {
+export function removeNullEntries(m, uids, lut) {
   const res = new Array(lut.length);
   for (let i = 0; i < lut.length; i += 1) {
     res[i] = new Float32Array(m[lut[i]]);
   }
-  return res;
+  return [res, uids.filter((_, i) => lut.includes(i))];
 }
 
 export function buildEmbeddingNetwork(
@@ -231,12 +234,12 @@ export function buildEmbeddingNetwork(
     skills: people[uid].skills || [],
   }));
 
-  const uids = people.map((o) => o.uid);
+  let uids = people.map((o) => o.uid);
   const matrix = buildSkillsMatrix(people);
 
   // remove null entries from matrix
   const lut = findNullEntriesInMatrix(matrix);
-  const notNullMatrix = removeNullEntriesInMatrix(matrix, lut);
+  const [notNullMatrix, notNullUids] = removeNullEntries(matrix, uids, lut);
 
   // 2d embedding for display
   const umap2 = new UMAP({ nComponents: 2 });
@@ -286,6 +289,7 @@ export function buildEmbeddingNetwork(
   } else {
     finalEmbedding = embedding;
     finalMatrix = notNullMatrix;
+    uids = notNullUids;
   }
 
   // build network
