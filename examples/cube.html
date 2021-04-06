@@ -20,7 +20,7 @@
   <script>
     window.onload = function () {
 
-      BrainWeb.on('data', function (people) {
+      BrainWeb.on('data', function ({ people }) {
 
         people = Object.keys(people).reduce(function (acc, p) {
           if (people[p].skills && people[p].skills.length > 0) acc[p] = people[p];

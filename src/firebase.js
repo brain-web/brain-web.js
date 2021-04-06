@@ -20,15 +20,31 @@ async function fetchFromGithub(uid) {
 const provider = new firebase.auth.GithubAuthProvider();
 
 export function init(dispatcher) {
-  // const uiAuth = new firebaseui.auth.AuthUI(firebase.auth());
-
   const circles = firebase.database().ref('circles/BrainWeb');
   circles.on('value', async (s) => {
-    const data = s.val();
-    if (data === null) {
+    const people = s.val();
+    if (people === null) {
       return;
     }
-    dispatcher.dispatch('data', data);
+
+    const skills = [];
+
+    Object.keys(people).forEach((id) => {
+      const p = people[id];
+      if (typeof p.skills === 'undefined') {
+        p.skills = [];
+      }
+      if (typeof p.displayname === 'undefined') {
+        p.displayname = p.username;
+      }
+      p.skills.forEach((skill) => {
+        if (!skills.includes(skill)) {
+          skills.push(skill);
+        }
+      });
+    });
+
+    dispatcher.dispatch('data', { people, skills });
   });
 
   firebase.auth().onAuthStateChanged(async (user) => {
@@ -37,7 +53,9 @@ export function init(dispatcher) {
       let { displayName } = user;
       const { uid } = providerData[0];
       if (uid === undefined || uid === null) {
-        dispatcher.dispatch('authError', { error: new Error('UID not present.') });
+        dispatcher.dispatch('authError', {
+          error: new Error('UID not present.'),
+        });
         return;
       }
       if (!displayName) {
@@ -75,12 +93,16 @@ export function init(dispatcher) {
     update: ({ userName, displayName, skills }) => {
       const logged = firebase.auth().currentUser;
       if (logged === null) {
-        dispatcher.dispatch('updateError', { error: new Error('Not logged.') });
+        dispatcher.dispatch('updateError', {
+          error: new Error('Not logged.'),
+        });
         return;
       }
       const uid = logged.providerData[0] && logged.providerData[0].uid;
       if (uid === undefined || uid === null) {
-        dispatcher.dispatch('updateError', { error: new Error('Not logged.') });
+        dispatcher.dispatch('updateError', {
+          error: new Error('Not logged.'),
+        });
         return;
       }
       circles

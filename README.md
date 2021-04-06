@@ -12,7 +12,7 @@ Inspired by initiatives such as Brainhack Global, the OHBM Hackathon, and the OH
   <script>
     window.onload = function () {
 
-      BrainWeb.on('data', function (people) {
+      BrainWeb.on('data', function ({ people, skills }) {
         BrainWeb.vis.buildNetwork(people, {
           width: document.body.clientWidth,
           height: document.body.clientHeight,
