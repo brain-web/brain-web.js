@@ -11,44 +11,6 @@ export function normalise(v) {
   return [v[0] / n, v[1] / n];
 }
 
-export function findPrincipalComponents(m) {
-  let mx = 0;
-  let my = 0;
-  let xx = 0;
-  let yy = 0;
-  let xy = 0;
-  for (let i = 0; i < m.length; i += 1) {
-    mx += m[i][0];
-    my += m[i][1];
-  }
-  mx /= m.length;
-  my /= m.length;
-  for (let i = 0; i < m.length; i += 1) {
-    xx += (m[i][0] - mx) ** 2;
-    yy += (m[i][1] - my) ** 2;
-    xy += (m[i][0] - mx) * (m[i][1] - my);
-  }
-
-  // http://people.math.harvard.edu/~knill/teaching/math21b2004/exhibits/2dmatrices/index.html
-  // matrix is [sum(xi^2)  sum(xi*yi)]
-  //           [sum(xi*yi) sum(yi^2)]
-  const t = (xx + yy) / 2;
-  const d = xx * yy - xy ** 2;
-  const k = Math.sqrt(t ** 2 - d);
-  const l1 = t + k;
-  const l2 = t - k;
-  let e1; let
-    e2;
-  if (l1 > l2) {
-    e1 = normalise([xy, l1 - xx]);
-    e2 = normalise([xy, l2 - xx]);
-  } else {
-    e1 = normalise([xy, l2 - xx]);
-    e2 = normalise([xy, l1 - xx]);
-  }
-  return { mean: [mx, my], evec1: e1, evec2: e2 };
-}
-
 function degree(node, nodei) {
   return Array.prototype.reduce.call(
     node,
