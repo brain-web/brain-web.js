@@ -173,7 +173,7 @@ export function findNullEntriesInMatrix(m) {
 export function removeNullEntries(m, uids, lut) {
   const res = new Array(lut.length);
   for (let i = 0; i < lut.length; i += 1) {
-    res[i] = new Float32Array(m[lut[i]]);
+    res[i] = m[lut[i]].filter((_, j) => lut.includes(j));
   }
   return [res, uids.filter((_, i) => lut.includes(i))];
 }
