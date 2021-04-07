@@ -16,36 +16,33 @@
 </head>
 <body>
   <script src="../brain-web.js"></script>
-  <script src="https://unpkg.com/d3-force-boundary@0.0.1/dist/d3-force-boundary.min.js"></script>
   <script>
     window.onload = function () {
 
       BrainWeb.on('data', function ({ people }) {
-
-        people = Object.keys(people).reduce(function (acc, p) {
-          if (people[p].skills && people[p].skills.length > 0) acc[p] = people[p];
-          return acc;
-        }, {});
-
         BrainWeb.vis.buildNetwork(people, {
-          width: document.body.clientWidth,
-          height: document.body.clientHeight,
-          zoom: 4,
-          circles: false, names: false,
+          graph: {
+            width: document.body.clientWidth,
+            height: document.body.clientHeight,
+            zoom: 4,
+            circles: false, names: false,
 
-          simulation: (nodes, links) => {
-            const euclidean = ({
-              source: { x: x1, y: y1 },
-              target: { x: x2, y: y2 },
-            }) => ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 1 / 2;
+            simulation: (nodes, links, origin) => {
+              const euclidean = ({
+                source: { x: x1, y: y1 },
+                target: { x: x2, y: y2 },
+              }) => ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 1 / 2;
 
-            return BrainWeb.vis.d3.forceSimulation(nodes)
-              .alpha(0.2)
-              .alphaDecay(0.01)
-              .force('link', BrainWeb.vis.d3.forceLink(links).id((d) => d.id).distance(euclidean))
-              .force('charge', BrainWeb.vis.d3.forceManyBody().strength(-0.3))
-              .force('collision', BrainWeb.vis.d3.forceCollide(3))
-              .force('boundaries', forceBoundary(-30, -30, 30, 30).hardBoundary(true).strength(0.001));
+              const { zoom } = origin;
+
+              return BrainWeb.vis.d3.forceSimulation(nodes)
+                .alpha(0.2)
+                .alphaDecay(0.01)
+                .force('link', BrainWeb.vis.d3.forceLink(links).id((d) => d.id).distance(euclidean))
+                .force('charge', BrainWeb.vis.d3.forceManyBody().strength(-0.3 * zoom))
+                .force('collision', BrainWeb.vis.d3.forceCollide(3 * zoom).iterations(5))
+                .force('boundaries', BrainWeb.vis.d3.forceBoundary(-30 * zoom, -30 * zoom, 30 * zoom, 30 * zoom).hardBoundary(true).strength(0.001 * zoom));
+            }
           }
         })
           .then((svg) => {

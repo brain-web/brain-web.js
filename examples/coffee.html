@@ -63,24 +63,17 @@
   <script>
     window.onload = function () {
       BrainWeb.on('data', function ({ people }) {
-        people = Object.keys(people).reduce(function (acc, p) {
-          if (people[p].skills && people[p].skills.length > 0) acc[p] = people[p];
-          return acc;
-        }, {});
-
         const classes = Object.keys(people).filter((p) =>
           people[p].skills.includes('coffee')
         ).map((p) => `bw-${p}`);
 
-        var sheet = document.createElement('style')
-        sheet.innerHTML = "div {border: 2px solid black; background-color: blue;}";
-        document.body.appendChild(sheet);
-
         BrainWeb.vis.buildNetwork(people, {
-          width: document.body.clientWidth,
-          height: document.body.clientHeight,
-          zoom: 1.5,
-          names: false,
+          graph: {
+            width: document.body.clientWidth,
+            height: document.body.clientHeight,
+            zoom: 2,
+            names: false,
+          }
         })
           .then((svg) => {
             document.body.appendChild(svg);
