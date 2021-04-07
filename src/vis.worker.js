@@ -25,8 +25,8 @@ export function kNNSkillsMatrixPruning(matrix, knn, preventIsolated) {
   for (let i = 0; i < N; i += 1) {
     matrix[i][i] = 0;
     if (preventIsolated && d[i] < knn) {
-        continue; // eslint-disable-line no-continue
-      }
+      continue; // eslint-disable-line no-continue
+    }
     for (let j = i + 1; j < N; j += 1) {
       const keepDegree = preventIsolated && d[i] <= 1 && d[j] <= 1;
       if (!nns[i].includes(j) && matrix[i][j] !== 0 && !keepDegree) {
