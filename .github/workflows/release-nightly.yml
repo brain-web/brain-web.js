@@ -45,3 +45,7 @@ jobs:
       - run: gh release create --prerelease --target develop -t nightly nightly ./dist/*.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: npm publish --tag nightly
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
