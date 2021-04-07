@@ -231,12 +231,12 @@ export function buildEmbeddingNetwork(
   if (!clusterPreventIsolated) {
     finalMatrix = matrix.map((f) => Array.from(f));
     finalEmbedding = [];
-    let notNull = 0;
+    let nulled = 0;
     for (let i = 0; i < matrix.length; i += 1) {
       if (lut.indexOf(i) === -1) {
-        const theta = (2 * Math.PI) * (notNull / (matrix.length - lut.length));
+        const theta = (2 * Math.PI) * (nulled / (matrix.length - lut.length));
         finalEmbedding[i] = [Math.cos(theta), Math.sin(theta)];
-        notNull += 1;
+        nulled += 1;
       }
       for (let j = 0; j < matrix.length; j += 1) {
         finalMatrix[i][j] = 0;
