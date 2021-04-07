@@ -166,39 +166,17 @@ export async function buildEmbeddingNetwork(people, params = {}) {
 }
 
 export async function buildNetwork(people, {
-  width, height, radius, zoom,
-  simulation, scale, onClick,
-  circles, edges, names,
-
-  clustering, clusters,
-  clusterEmbeddingComponents,
-  clusterNearestNeighbours,
+  graph, embedding,
 }) {
   const prunedNetwork = await buildEmbeddingNetwork(
     people,
-    {
-      clustering,
-      clusters,
-      clusterEmbeddingComponents,
-      clusterNearestNeighbours,
-    },
+    embedding,
   );
 
   return buildSVG(
     people,
     prunedNetwork,
-    {
-      width,
-      height,
-      radius,
-      zoom,
-      simulation,
-      scale,
-      onClick,
-      circles,
-      edges,
-      names,
-    },
+    graph,
   );
 }
 
