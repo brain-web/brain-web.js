@@ -4,6 +4,12 @@ import VisWorker from './vis.worker';
 
 const d3 = {
   ...d3lib,
+  distances: {
+    euclidean: (zoom) => ({
+        source: { x: x1, y: y1 },
+        target: { x: x2, y: y2 },
+    }) => (((x1 * zoom - x2 * zoom) ** 2 + (y1 * zoom - y2 * zoom) ** 2))
+  },
   forceBoundary,
 };
 
@@ -37,11 +43,11 @@ export function defaultSimulation(nodes, links, origin) {
   const { x, y, zoom } = origin;
   return d3.forceSimulation(nodes)
     .velocityDecay(0.1 * zoom)
-    .force('link', d3.forceLink(links).id((d) => d.id).distance((l) => l.value))
-    .force('collision', d3.forceCollide(5 * zoom).iterations(5))
+    .force('link', d3.forceLink(links).id((d) => d.id).strength(0.1 * zoom).distance(d3.distances.euclidean(zoom)))
+    .force('collision', d3.forceCollide(5 * zoom).iterations(10).strength(0.8 * zoom))
     .force('charge', d3.forceManyBody().strength(-0.3 * zoom))
-    .force('y', d3.forceY().strength(0.01 * zoom))
-    .force('boundaries', d3.forceBoundary(-x, -y, x, y).hardBoundary(true).strength(0.001 * zoom));
+    .force('y', d3.forceY().strength(0.003 * zoom))
+    .force('boundaries', d3.forceBoundary(-x, -y, x, y).hardBoundary(true).strength(0.0001 * zoom));
 }
 
 export function buildSVG(
