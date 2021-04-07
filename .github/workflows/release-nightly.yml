@@ -1,4 +1,4 @@
-name: release nightly
+name: release-nightly
 on:
   push:
     branches:
@@ -14,11 +14,35 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm install
       - uses: actions/setup-node@v1
-      - run: npm run build
       - run: (git push origin :refs/tags/nightly && git tag -d nightly) || true
       - run: gh release delete nightly -y || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          git log $(jq -r ".version" package.json)..HEAD --oneline | cut -d ' ' -f 2- > /tmp/messages.txt
+
+          BUMP="patch"
+          if grep -q "\bmajor\b" /tmp/messages.txt; then
+            BUMP="major"
+          elif grep -q "\bminor\b" /tmp/messages.txt; then
+            BUMP="minor"
+          fi
+
+          npm version pre${BUMP} --no-git-tag-version
+
+          echo "PROJECT_BUMP=${BUMP}" >> $GITHUB_ENV
+          echo "PROJECT_VERSION=$(jq -r ".version" package.json)" >> $GITHUB_ENV
+
+      - run: npm run build
+
+      - uses: EndBug/add-and-commit@v5
+        with:
+          message: "Bump to version ${{ env.PROJECT_VERSION }} (${{ env.PROJECT_VERSION }})"
+          add: "['./package.json', './package-lock.json']"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - run: gh release create --prerelease --target develop -t nightly nightly ./dist/*.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

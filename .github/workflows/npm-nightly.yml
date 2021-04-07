@@ -1,11 +1,14 @@
-name: npm nightly
+name: npm-nightly
 on:
-  push:
-    branches:
-      - develop
+  workflow_run:
+    workflows: ["release-nightly"]
+    branches: [develop]
+    types: 
+      - completed
 jobs:
   npm:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
