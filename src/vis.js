@@ -5,10 +5,10 @@ import VisWorker from './vis.worker';
 const d3 = {
   ...d3lib,
   distances: {
-    euclidean: (zoom) => ({
-        source: { x: x1, y: y1 },
-        target: { x: x2, y: y2 },
-    }) => (((x1 * zoom - x2 * zoom) ** 2 + (y1 * zoom - y2 * zoom) ** 2))
+    euclidean: (zoom = 1) => ({
+      source: { x: x1, y: y1 },
+      target: { x: x2, y: y2 },
+    }) => (((x1 * zoom - x2 * zoom) ** 2 + (y1 * zoom - y2 * zoom) ** 2)),
   },
   forceBoundary,
 };
