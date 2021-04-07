@@ -229,7 +229,7 @@ export function buildEmbeddingNetwork(
   let finalMatrix;
   let finalEmbedding;
   if (!clusterPreventIsolated) {
-    finalMatrix = JSON.parse(JSON.stringify(matrix));
+    finalMatrix = matrix.map((f) => Array.from(f));
     finalEmbedding = [];
     let notNull = 0;
     for (let i = 0; i < matrix.length; i += 1) {
