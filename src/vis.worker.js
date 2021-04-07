@@ -75,17 +75,19 @@ export function networkToSkillsMatrix(network, people) {
   return matrix;
 }
 
-export function skillsClustersToGroups(matrix, network, groups) {
+export function skillsClustersToGroups(matrix, groups) {
   const tree = agnes(matrix, { method: 'ward' });
   const clusters = tree.group(groups);
 
+  const assignments = new Float32Array(matrix.length);
   clusters.children.forEach((g, i) => {
     g.traverse((gg) => {
       if (gg.isLeaf) {
-        network.nodes[gg.index].group = i;
+        assignments.set([i], gg.index);
       }
     });
   });
+  return assignments;
 }
 
 export function matrixToNetwork(matrix, embedding, uids) {
@@ -260,7 +262,10 @@ export function buildEmbeddingNetwork(
     const N = finalMatrix.length;
     clusters = ~~(N ** 1 / 2);
   }
-  skillsClustersToGroups(finalMatrix, network, clusters);
+  const assignments = skillsClustersToGroups(finalMatrix, clusters);
+  network.nodes.forEach((n, i) => {
+    n.group = assignments[i];
+  });
 
   return network;
 }
