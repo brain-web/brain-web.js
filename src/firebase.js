@@ -49,8 +49,8 @@ export function init(dispatcher) {
 
   firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
-      const { photoURL, providerData } = user;
-      let { displayName } = user;
+      const { providerData } = user;
+      let { displayName: displayname } = user;
       const { uid } = providerData[0];
       if (uid === undefined || uid === null) {
         dispatcher.dispatch('auth', {
@@ -58,13 +58,15 @@ export function init(dispatcher) {
         });
         return;
       }
-      if (!displayName) {
-        const json = await fetchFromGithub(uid);
-        displayName = json.login;
+      const json = await fetchFromGithub(uid);
+      const username = json.login;
+
+      if (!displayname) {
+        displayname = username;
       }
 
       dispatcher.dispatch('auth', {
-        logged: true, uid, displayName, photoURL,
+        logged: true, uid, username, displayname,
       });
     } else {
       dispatcher.dispatch('auth', {
@@ -85,7 +87,7 @@ export function init(dispatcher) {
     signOut: () => {
       firebase.auth().signOut();
     },
-    update: ({ userName, displayName, skills }) => {
+    update: ({ username, displayname, skills }) => {
       const logged = firebase.auth().currentUser;
       if (logged === null) {
         dispatcher.dispatch('update', {
@@ -103,8 +105,8 @@ export function init(dispatcher) {
       circles
         .update({
           [uid]: {
-            username: userName,
-            displayname: displayName,
+            username: username,
+            displayname: displayname,
             skills,
           },
         })
