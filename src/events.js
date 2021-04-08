@@ -5,22 +5,26 @@ export class DispatcherEvent {
     this.callbacks = [];
   }
 
-  registerCallback(callback) {
-    this.callbacks.push(callback);
+  registerCallback(callback, once = false) {
+    this.callbacks.push({ callback, once });
   }
 
   unregisterCallback(callback) {
-    const index = this.callbacks.indexOf(callback);
+    const index = this.callbacks.findIndex(
+      ({ callback: cb }) => cb === callback,
+    );
     if (index > -1) {
       this.callbacks.splice(index, 1);
     }
   }
 
   fire(data) {
-    const callbacks = this.callbacks.slice(0);
-    callbacks.forEach((callback) => {
-      callback(data);
-    });
+    this.callbacks = this.callbacks.filter(
+      ({ callback, once }) => {
+        callback(data);
+        return !once;
+      },
+    );
   }
 }
 
@@ -37,18 +41,18 @@ export class Dispatcher {
     }
   }
 
-  on(eventName, callback) {
+  on(eventName, callback, once = false) {
     let event = this.events[eventName];
     if (!event) {
       event = new DispatcherEvent(eventName);
       this.events[eventName] = event;
     }
-    event.registerCallback(callback);
+    event.registerCallback(callback, once);
   }
 
   off(eventName, callback) {
     const event = this.events[eventName];
-    if (event && event.callbacks.indexOf(callback) > -1) {
+    if (event) {
       event.unregisterCallback(callback);
       if (event.callbacks.length === 0) {
         delete this.events[eventName];

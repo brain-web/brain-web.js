@@ -17,6 +17,10 @@ export class BrainWeb {
     this.events.on(eventName, callback);
   }
 
+  once(eventName, callback) {
+    this.events.on(eventName, callback, true);
+  }
+
   off(eventName, callback) {
     this.events.off(eventName, callback);
   }
