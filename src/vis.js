@@ -3,8 +3,8 @@ import forceBoundary from 'd3-force-boundary';
 import VisWorker from './vis.worker';
 
 function isolate(force, nodes) {
-  var initialize = force.initialize;
-  force.initialize = function() { initialize.call(force, nodes); };
+  const { initialize } = force;
+  force.initialize = () => initialize.call(force, nodes);
   return force;
 }
 

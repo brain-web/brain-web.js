@@ -105,8 +105,8 @@ export function init(dispatcher) {
       circles
         .update({
           [uid]: {
-            username: username,
-            displayname: displayname,
+            username,
+            displayname,
             skills,
           },
         })
