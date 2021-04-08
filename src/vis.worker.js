@@ -192,7 +192,6 @@ export function buildEmbeddingNetwork(
   // TODO review map to list conversion
   people = Object.keys(people).map((uid) => ({
     uid,
-    username: people[uid].username,
     skills: people[uid].skills || [],
   }));
 
