@@ -53,7 +53,7 @@ export function init(dispatcher) {
       let { displayName } = user;
       const { uid } = providerData[0];
       if (uid === undefined || uid === null) {
-        dispatcher.dispatch('authError', {
+        dispatcher.dispatch('auth', {
           error: new Error('UID not present.'),
         });
         return;
@@ -72,35 +72,30 @@ export function init(dispatcher) {
       });
     }
   }, (error) => {
-    dispatcher.dispatch('authError', { error });
+    dispatcher.dispatch('auth', { error });
   });
 
   return {
     signIn: () => {
       firebase.auth().signInWithPopup(provider)
-        .then((result) => {
-          const { user, credential } = result;
-          dispatcher.dispatch('signIn', { user, credential });
-        })
         .catch((error) => {
-          dispatcher.dispatch('signInError', { error });
+          dispatcher.dispatch('auth', { error });
         });
     },
     signOut: () => {
       firebase.auth().signOut();
-      dispatcher.dispatch('signOut', {});
     },
     update: ({ userName, displayName, skills }) => {
       const logged = firebase.auth().currentUser;
       if (logged === null) {
-        dispatcher.dispatch('updateError', {
+        dispatcher.dispatch('update', {
           error: new Error('Not logged.'),
         });
         return;
       }
       const uid = logged.providerData[0] && logged.providerData[0].uid;
       if (uid === undefined || uid === null) {
-        dispatcher.dispatch('updateError', {
+        dispatcher.dispatch('update', {
           error: new Error('Not logged.'),
         });
         return;
@@ -115,10 +110,10 @@ export function init(dispatcher) {
         })
         .then(
           () => {
-            dispatcher.dispatch('updateSuccess', {});
+            dispatcher.dispatch('update', {});
           },
           (error) => {
-            dispatcher.dispatch('updateError', { error });
+            dispatcher.dispatch('update', { error });
           },
         );
     },

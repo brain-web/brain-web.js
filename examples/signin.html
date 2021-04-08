@@ -42,13 +42,14 @@
   <script>
     window.onload = function () {
       BrainWeb.init();
-      BrainWeb.on('signIn', ({ user, credential }) => {
-
-      });
-      BrainWeb.on('signInError', ({ error }) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        document.getElementById('message').innerHTML = '<strong>' + errorCode + '</strong>: ' + errorMessage;
+      BrainWeb.on('auth', ({ error, user, credential }) => {
+        if (error) {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          document.getElementById('message').innerHTML = '<strong>' + errorCode + '</strong>: ' + errorMessage;
+        } else {
+          document.getElementById('message').innerHTML = '<strong>Logged-in</strong>: ' + JSON.stringify(user);
+        }
       });
 
       document.getElementById('signin').addEventListener('click', () => {
