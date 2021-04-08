@@ -6,10 +6,11 @@ export class BrainWeb {
   constructor() {
     this.events = new Dispatcher();
     this.vis = vis;
+    this.db = null;
   }
 
   init() {
-    this.firebase = firebase.init(this.events);
+    this.db = firebase.init(this.events);
   }
 
   on(eventName, callback) {
