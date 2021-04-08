@@ -2,6 +2,12 @@ import * as d3lib from 'd3';
 import forceBoundary from 'd3-force-boundary';
 import VisWorker from './vis.worker';
 
+function isolate(force, nodes) {
+  var initialize = force.initialize;
+  force.initialize = function() { initialize.call(force, nodes); };
+  return force;
+}
+
 const d3 = {
   ...d3lib,
   distances: {
@@ -11,6 +17,7 @@ const d3 = {
     }) => (((x1 * zoom - x2 * zoom) ** 2 + (y1 * zoom - y2 * zoom) ** 2)),
   },
   forceBoundary,
+  isolate,
 };
 
 export { d3 };
