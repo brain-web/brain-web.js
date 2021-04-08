@@ -62,10 +62,14 @@
   <script src="../brain-web.js"></script>
   <script>
     window.onload = function () {
+
       BrainWeb.on('data', function ({ people }) {
-        const classes = Object.keys(people).filter((p) =>
+        const uids = Object.keys(people).filter((p) =>
           people[p].skills.includes('coffee')
-        ).map((p) => `bw-${p}`);
+        );
+        const classes = uids.map((p) => `bw-${p}`);
+
+        const d3 = BrainWeb.vis.d3;
 
         BrainWeb.vis.buildNetwork(people, {
           graph: {
@@ -73,6 +77,11 @@
             height: document.body.clientHeight,
             zoom: 2,
             names: false,
+            simulation: (nodes, links, origin) => {
+              const coffeeNodes = nodes.filter((d) => uids.includes(d.id));
+              return BrainWeb.vis.defaultSimulation(nodes, links, origin)
+                .force("grains", d3.isolate(d3.forceCenter().strength(0.1), coffeeNodes));
+            }
           }
         })
           .then((svg) => {
