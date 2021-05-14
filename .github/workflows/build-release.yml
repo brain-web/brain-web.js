@@ -20,7 +20,7 @@ jobs:
           git config --local user.email "gh-actions-bot@noreply.github.com"
           git config --local user.name "gh-actions-bot"
           ls -hal ./dist
-          git add ./dist/*.js
+          git add .
           git commit -m "new dist" -a
       - name: Push changes
         uses: ad-m/github-push-action@master
