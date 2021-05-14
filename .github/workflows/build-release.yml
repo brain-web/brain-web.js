@@ -30,3 +30,8 @@ jobs:
       - run: gh release create -t $(jq -r ".version" package.json) $(jq -r ".version" package.json) ./dist/*.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
