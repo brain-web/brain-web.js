@@ -14,6 +14,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm install
       - uses: actions/setup-node@v1
+      - run: |
+          if [ -d "./dist" ]; then
+            echo "Remove current dist"
+            rm -r "./dist"
+          fi
       - run: npm run build
       - run: |
           git log $(jq -r ".version" package.json)..HEAD --oneline | cut -d ' ' -f 2- > /tmp/messages.txt
