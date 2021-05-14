@@ -41,7 +41,7 @@ export function buildSVG(
     const euclidean = ({
       source: { x: x1, y: y1 },
       target: { x: x2, y: y2 },
-    }) => ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 1 / 2;
+    }) => ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5;
 
     simulation = d3.forceSimulation(nodes)
       .velocityDecay(0.1)
