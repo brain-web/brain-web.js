@@ -12,20 +12,15 @@ jobs:
         with:
           node-version: "10.x"
           registry-url: "https://registry.npmjs.org"
-      - run: npm install
-      - uses: actions/setup-node@v1
-      - run: |
-          if [ -d "./dist" ]; then
-            echo "Remove current dist"
-            rm -r "./dist"
-          fi
-      - name: Build and commit new dist
+      - name: Install node modules
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Commit new build
         run: |
-          npm run build
           git config --local user.email "github-actions-bot@noreply.github.com"
           git config --local user.name "github-actions-bot"
-          ls
-          git add ./dist/*.js
+          git add -f dist/*.js
           git commit -m "new dist"
       - name: Push changes
         uses: ad-m/github-push-action@master
